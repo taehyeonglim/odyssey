@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar, TabType } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { SoundPlayer } from './components/common/SoundPlayer';
 import { ImageModal } from './components/common/ImageModal';
 import { QuoteCardModal } from './components/common/QuoteCardModal';
+import { OmniSearchModal } from './components/common/OmniSearchModal';
 import { IliadHero } from './components/iliad/IliadHero';
 import { IliadTimeline } from './components/iliad/IliadTimeline';
 import { TrojanWarSides } from './components/iliad/TrojanWarSides';
@@ -12,16 +13,32 @@ import { BattlefieldMap } from './components/iliad/BattlefieldMap';
 import { OdysseyHero } from './components/odyssey/OdysseyHero';
 import { InteractiveMap } from './components/odyssey/InteractiveMap';
 import { CharacterCodex } from './components/codex/CharacterCodex';
+import { GenealogyGraph } from './components/genealogy/GenealogyGraph';
+import { HomericLexicon } from './components/lexicon/HomericLexicon';
 import { HeroTrial } from './components/adventure/HeroTrial';
 import { HomerTrivia } from './components/adventure/HomerTrivia';
-import { Swords, Compass, Users, Award, Sparkles, ChevronRight, BookOpen, Shield } from 'lucide-react';
+import { DuelArena } from './components/adventure/DuelArena';
+import { Swords, Compass, Users, Award, Sparkles, ChevronRight, BookOpen, GitFork, BookMarked } from 'lucide-react';
 import { audioEngine } from './utils/soundSynth';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
-  const [adventureMode, setAdventureMode] = useState<'trial' | 'trivia'>('trial');
+  const [adventureMode, setAdventureMode] = useState<'trial' | 'trivia' | 'duel'>('trial');
   const [modalImage, setModalImage] = useState<{ src: string; title: string; caption?: string } | null>(null);
   const [quoteCard, setQuoteCard] = useState<{ korean: string; greek?: string; speaker: string; source: string } | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+
+  // Global Keyboard Shortcut for Cmd+K / Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleOpenImageModal = (src: string, title: string, caption?: string) => {
     setModalImage({ src, title, caption });
@@ -36,7 +53,11 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0c0a08] text-slate-100 font-sans flex flex-col selection:bg-amber-600 selection:text-white">
       {/* Top Navbar */}
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenSearch={() => setIsSearchOpen(true)}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -89,6 +110,13 @@ export const App: React.FC = () => {
                     >
                       <Compass className="w-4 h-4" />
                       <span>오디세이아 항해</span>
+                    </button>
+                    <button
+                      onClick={() => handleNavigateTab('genealogy')}
+                      className="px-5 py-2.5 rounded-xl bg-[#15110d] hover:bg-[#1f1913] text-amber-200 border border-amber-500/40 font-serif font-bold text-xs tracking-wide flex items-center space-x-2 transition"
+                    >
+                      <GitFork className="w-4 h-4 text-amber-400" />
+                      <span>영웅 가계도</span>
                     </button>
                   </div>
                 </div>
@@ -172,21 +200,47 @@ export const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Interactive Features Promo */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Quick Interactive Features Promo Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div 
                 onClick={() => {
-                  setAdventureMode('trial');
+                  setAdventureMode('duel');
                   handleNavigateTab('adventure');
                 }}
-                className="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/20 hover:border-amber-500/50 cursor-pointer transition flex items-center space-x-4"
+                className="p-5 rounded-2xl bg-rose-950/30 border border-rose-500/30 hover:border-rose-500/60 cursor-pointer transition flex items-center space-x-3"
               >
-                <div className="p-3 rounded-xl bg-amber-900/40 text-amber-300 shrink-0">
-                  <Award className="w-6 h-6" />
+                <div className="p-2.5 rounded-xl bg-rose-900/40 text-rose-300 shrink-0">
+                  <Swords className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-serif text-base font-bold text-amber-200">영웅의 선택</h4>
-                  <p className="text-xs text-slate-400 font-sans">키클롭스, 세이렌의 위기에서 당신의 결단을 내려보세요.</p>
+                  <h4 className="font-serif text-sm font-bold text-rose-200">영웅 결투장</h4>
+                  <p className="text-[11px] text-slate-400 font-sans">영웅들의 가상 백병전 시뮬레이션</p>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => handleNavigateTab('genealogy')}
+                className="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/30 hover:border-amber-500/60 cursor-pointer transition flex items-center space-x-3"
+              >
+                <div className="p-2.5 rounded-xl bg-amber-900/40 text-amber-300 shrink-0">
+                  <GitFork className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-serif text-sm font-bold text-amber-200">영웅 가계도</h4>
+                  <p className="text-[11px] text-slate-400 font-sans">4대 왕가의 혈통과 운명</p>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => handleNavigateTab('lexicon')}
+                className="p-5 rounded-2xl bg-purple-950/30 border border-purple-500/30 hover:border-purple-500/60 cursor-pointer transition flex items-center space-x-3"
+              >
+                <div className="p-2.5 rounded-xl bg-purple-900/40 text-purple-300 shrink-0">
+                  <BookMarked className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-serif text-sm font-bold text-purple-200">그리스어 사전</h4>
+                  <p className="text-[11px] text-slate-400 font-sans">12대 핵심 사상 플래시카드</p>
                 </div>
               </div>
 
@@ -195,27 +249,14 @@ export const App: React.FC = () => {
                   setAdventureMode('trivia');
                   handleNavigateTab('adventure');
                 }}
-                className="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/20 hover:border-amber-500/50 cursor-pointer transition flex items-center space-x-4"
+                className="p-5 rounded-2xl bg-sky-950/30 border border-sky-500/30 hover:border-sky-500/60 cursor-pointer transition flex items-center space-x-3"
               >
-                <div className="p-3 rounded-xl bg-amber-900/40 text-amber-300 shrink-0">
-                  <BookOpen className="w-6 h-6" />
+                <div className="p-2.5 rounded-xl bg-sky-900/40 text-sky-300 shrink-0">
+                  <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-serif text-base font-bold text-amber-200">호메로스 학당 퀴즈</h4>
-                  <p className="text-xs text-slate-400 font-sans">10단계 서사시 지식 챌린지에 도전하고 칭호를 획득하세요.</p>
-                </div>
-              </div>
-
-              <div 
-                onClick={() => handleNavigateTab('codex')}
-                className="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/20 hover:border-amber-500/50 cursor-pointer transition flex items-center space-x-4"
-              >
-                <div className="p-3 rounded-xl bg-amber-900/40 text-amber-300 shrink-0">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-serif text-base font-bold text-amber-200">호메로스 인물 도감</h4>
-                  <p className="text-xs text-slate-400 font-sans">영웅들과 올림포스 신들의 능력치와 초상화.</p>
+                  <h4 className="font-serif text-sm font-bold text-sky-200">호메로스 학당</h4>
+                  <p className="text-[11px] text-slate-400 font-sans">10문항 서사시 지식 퀴즈</p>
                 </div>
               </div>
             </div>
@@ -273,7 +314,21 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* ===================== TAB: ADVENTURE & ACADEMY ===================== */}
+        {/* ===================== TAB: GENEALOGY ===================== */}
+        {activeTab === 'genealogy' && (
+          <div className="animate-fadeIn">
+            <GenealogyGraph />
+          </div>
+        )}
+
+        {/* ===================== TAB: LEXICON ===================== */}
+        {activeTab === 'lexicon' && (
+          <div className="animate-fadeIn">
+            <HomericLexicon />
+          </div>
+        )}
+
+        {/* ===================== TAB: ADVENTURE & ARENA ===================== */}
         {activeTab === 'adventure' && (
           <div className="space-y-8 animate-fadeIn">
             {/* Mode Switcher */}
@@ -284,34 +339,50 @@ export const App: React.FC = () => {
                     audioEngine.playChime();
                     setAdventureMode('trial');
                   }}
-                  className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold transition flex items-center space-x-2 ${
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold transition flex items-center space-x-1.5 ${
                     adventureMode === 'trial'
                       ? 'bg-amber-600 text-white shadow'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   <Award className="w-4 h-4" />
-                  <span>영웅의 선택 시뮬레이터</span>
+                  <span>영웅의 선택</span>
+                </button>
+                <button
+                  onClick={() => {
+                    audioEngine.playChime();
+                    setAdventureMode('duel');
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold transition flex items-center space-x-1.5 ${
+                    adventureMode === 'duel'
+                      ? 'bg-rose-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Swords className="w-4 h-4" />
+                  <span>가상 결투장</span>
                 </button>
                 <button
                   onClick={() => {
                     audioEngine.playChime();
                     setAdventureMode('trivia');
                   }}
-                  className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold transition flex items-center space-x-2 ${
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold transition flex items-center space-x-1.5 ${
                     adventureMode === 'trivia'
-                      ? 'bg-amber-600 text-white shadow'
+                      ? 'bg-sky-600 text-white shadow'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span>호메로스 학당 퀴즈</span>
+                  <span>호메로스 학당</span>
                 </button>
               </div>
             </div>
 
             {adventureMode === 'trial' ? (
               <HeroTrial onOpenImageModal={handleOpenImageModal} />
+            ) : adventureMode === 'duel' ? (
+              <DuelArena />
             ) : (
               <HomerTrivia />
             )}
@@ -336,6 +407,13 @@ export const App: React.FC = () => {
         isOpen={!!quoteCard}
         onClose={() => setQuoteCard(null)}
         quote={quoteCard}
+      />
+
+      {/* Omni Search Modal */}
+      <OmniSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onNavigate={(tab) => handleNavigateTab(tab)}
       />
 
       {/* Footer */}
