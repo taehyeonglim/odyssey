@@ -17,7 +17,7 @@ function check(title, fn) {
 }
 
 // 1. Check all image assets exist and are > 0 bytes
-check("Image assets on disk", () => {
+check("Image assets on disk (all 8 character portraits + scene paintings)", () => {
   const images = [
     'hero_banner.jpg',
     'iliad_achilles_rage.jpg',
@@ -28,8 +28,13 @@ check("Image assets on disk", () => {
     'odyssey_ithaca_return.jpg',
     'odyssey_sirens.jpg',
     'portrait_achilles.jpg',
+    'portrait_odysseus.jpg',
     'portrait_athena.jpg',
-    'portrait_odysseus.jpg'
+    'portrait_hector.jpg',
+    'portrait_penelope.jpg',
+    'portrait_circe.jpg',
+    'portrait_polyphemus.jpg',
+    'portrait_agamemnon.jpg'
   ];
   for (const img of images) {
     const p = path.join(__dirname, '../public/assets/images', img);
@@ -55,7 +60,7 @@ check("Vite production build (npx vite build)", () => {
   }
 });
 
-// 4. Dist assets integrity
+// 4. Dist bundle & assets integrity
 check("Dist bundle & assets integrity", () => {
   const distAssets = fs.readdirSync(path.join(__dirname, '../dist/assets'));
   const jsFile = distAssets.find(f => f.endsWith('.js'));

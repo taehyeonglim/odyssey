@@ -51,6 +51,7 @@ export const ROYAL_HOUSES: RoyalHouse[] = [
         generation: 3,
         role: "미케네의 국왕 & 그리스 연합군 총사령관",
         fate: "트로이 정복 후 귀환했으나 아내 클리타임네스트라에게 암살당함",
+        avatar: "./assets/images/portrait_agamemnon.jpg",
         relationships: { childOf: ["atreus_king"], marriedTo: "clytemnestra", parentOf: ["orestes", "iphigenia"] }
       },
       {
@@ -125,7 +126,7 @@ export const ROYAL_HOUSES: RoyalHouse[] = [
         generation: 3,
         role: "트로이 총사령관 & 조국의 수호신",
         fate: "아킬레우스와의 결투에서 장렬히 전사",
-        avatar: "./assets/images/iliad_hector_duel.jpg",
+        avatar: "./assets/images/portrait_hector.jpg",
         relationships: { childOf: ["priam_king", "hecuba"], marriedTo: "andromache", parentOf: ["astyanax"] }
       },
       {
@@ -258,6 +259,7 @@ export const ROYAL_HOUSES: RoyalHouse[] = [
         generation: 3,
         role: "이타카의 왕비 & 정절의 표상",
         fate: "베틀의 지혜로 20년간 구혼자들을 따돌리고 남편과 감격의 재회",
+        avatar: "./assets/images/portrait_penelope.jpg",
         relationships: { marriedTo: "odysseus", parentOf: ["telemachus"] }
       },
       {
