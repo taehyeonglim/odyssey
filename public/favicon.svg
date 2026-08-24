@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#15110d" stroke="#d7be9b" stroke-width="4"/>
+  <!-- Greek Helmet / Ship Helm motif -->
+  <path d="M 50 15 C 32 15 25 35 25 55 C 25 75 38 82 50 82 C 62 82 75 75 75 55 C 75 35 68 15 50 15 Z" fill="#ad7f50"/>
+  <path d="M 38 45 L 62 45 L 58 60 L 42 60 Z" fill="#15110d"/>
+  <path d="M 47 10 L 53 10 L 53 45 L 47 45 Z" fill="#c45d3e"/>
+  <circle cx="50" cy="50" r="6" fill="#f4ede0"/>
+</svg>
