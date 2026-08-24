@@ -3,8 +3,9 @@ import { Navbar, TabType } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { SoundPlayer } from './components/common/SoundPlayer';
 import { ImageModal } from './components/common/ImageModal';
-import { QuoteCardModal } from './components/common/QuoteCardModal';
+import { QuoteCardModal, EpicQuoteItem } from './components/common/QuoteCardModal';
 import { OmniSearchModal } from './components/common/OmniSearchModal';
+import { FloatingActionBar } from './components/common/FloatingActionBar';
 import { IliadHero } from './components/iliad/IliadHero';
 import { IliadTimeline } from './components/iliad/IliadTimeline';
 import { TrojanWarSides } from './components/iliad/TrojanWarSides';
@@ -25,7 +26,8 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [adventureMode, setAdventureMode] = useState<'trial' | 'trivia' | 'duel'>('trial');
   const [modalImage, setModalImage] = useState<{ src: string; title: string; caption?: string } | null>(null);
-  const [quoteCard, setQuoteCard] = useState<{ korean: string; greek?: string; speaker: string; source: string } | null>(null);
+  const [quoteCard, setQuoteCard] = useState<EpicQuoteItem | null>(null);
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
   // Global Keyboard Shortcut for Cmd+K / Ctrl+K
@@ -390,6 +392,15 @@ export const App: React.FC = () => {
         )}
       </main>
 
+      {/* Floating Action Bar (Scroll-to-top, Quick Search, Quote Modal) */}
+      <FloatingActionBar
+        onOpenSearch={() => setIsSearchOpen(true)}
+        onOpenQuoteModal={() => {
+          setQuoteCard(null);
+          setIsQuoteModalOpen(true);
+        }}
+      />
+
       {/* Persistent Ambient Sound Player Widget */}
       <SoundPlayer />
 
@@ -404,8 +415,11 @@ export const App: React.FC = () => {
 
       {/* Quote Card Generator Modal */}
       <QuoteCardModal
-        isOpen={!!quoteCard}
-        onClose={() => setQuoteCard(null)}
+        isOpen={isQuoteModalOpen || !!quoteCard}
+        onClose={() => {
+          setQuoteCard(null);
+          setIsQuoteModalOpen(false);
+        }}
         quote={quoteCard}
       />
 
