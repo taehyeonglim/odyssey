@@ -1,15 +1,20 @@
-// Pure Web Audio API Sound Generator (Zero external MP3 dependencies)
+// Enhanced Pure Web Audio API Sound Synthesizer with 3 Distinct Epic Moods
+
+export type SoundMood = 'calm' | 'battle' | 'mystic';
 
 class EpicAudioEngine {
   private ctx: AudioContext | null = null;
   private isPlaying: boolean = false;
+  private currentMood: SoundMood = 'calm';
   private masterGain: GainNode | null = null;
   private seaGain: GainNode | null = null;
   private seaNoiseNode: AudioNode | null = null;
-  private melodyInterval: number | null = null;
+  private loopInterval: number | null = null;
 
-  // Ancient Greek Dorian scale frequencies (Hz): D, E, F, G, A, B, C, D
-  private lyreNotes = [293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25];
+  // Scales
+  private dorianNotes = [293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
+  private mysticNotes = [440.00, 466.16, 554.37, 587.33, 659.25, 698.46, 880.00];
+  private battleNotes = [110.00, 130.81, 146.83, 164.81, 196.00, 220.00];
 
   private initContext() {
     if (!this.ctx) {
@@ -24,7 +29,7 @@ class EpicAudioEngine {
     }
   }
 
-  // Create ambient sea waves using filtered noise buffer & LFO
+  // Sea Ambience
   private startSeaAmbience() {
     if (!this.ctx || !this.masterGain) return;
 
@@ -43,9 +48,8 @@ class EpicAudioEngine {
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(300, this.ctx.currentTime);
 
-    // LFO for wave swelling
     const lfo = this.ctx.createOscillator();
-    lfo.frequency.setValueAtTime(0.15, this.ctx.currentTime); // Wave period ~6.6s
+    lfo.frequency.setValueAtTime(0.15, this.ctx.currentTime);
     const lfoGain = this.ctx.createGain();
     lfoGain.gain.setValueAtTime(250, this.ctx.currentTime);
     lfo.connect(lfoGain);
@@ -53,7 +57,7 @@ class EpicAudioEngine {
     lfo.start();
 
     this.seaGain = this.ctx.createGain();
-    this.seaGain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+    this.seaGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
 
     whiteNoise.connect(filter);
     filter.connect(this.seaGain);
@@ -71,14 +75,12 @@ class EpicAudioEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     
-    // Warm triangular blend
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
 
-    // Envelope for plucked string
     const now = this.ctx.currentTime;
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.2, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.25, now + 0.03);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
     osc.connect(gain);
@@ -89,7 +91,7 @@ class EpicAudioEngine {
   }
 
   // Play an ancient war drum beat
-  public playWarDrum() {
+  public playWarDrum(intensity = 0.4) {
     this.initContext();
     if (!this.ctx || !this.masterGain) return;
 
@@ -98,10 +100,10 @@ class EpicAudioEngine {
     const now = this.ctx.currentTime;
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(120, now);
-    osc.frequency.exponentialRampToValueAtTime(30, now + 0.5);
+    osc.frequency.setValueAtTime(110, now);
+    osc.frequency.exponentialRampToValueAtTime(35, now + 0.5);
 
-    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.setValueAtTime(intensity, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
 
     osc.connect(gain);
@@ -111,47 +113,116 @@ class EpicAudioEngine {
     osc.stop(now + 0.6);
   }
 
+  // Play brass-like horn swell for battle
+  public playWarHorn(freq = 146.83) {
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const now = this.ctx.currentTime;
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, now);
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, now);
+    filter.frequency.exponentialRampToValueAtTime(1200, now + 0.8);
+    filter.frequency.exponentialRampToValueAtTime(300, now + 2.2);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 2.5);
+  }
+
   // Play gentle chime UI sound
   public playChime() {
     this.playLyrePluck(523.25, 1.2);
     setTimeout(() => this.playLyrePluck(659.25, 1.5), 100);
   }
 
-  // Start background ambient soundtrack (Sea + periodic Dorian Lyre arpeggios)
+  // Set mood and restart ambient loop
+  public setMood(mood: SoundMood) {
+    this.currentMood = mood;
+    if (this.isPlaying) {
+      this.restartAmbientLoop();
+    }
+  }
+
+  public getMood(): SoundMood {
+    return this.currentMood;
+  }
+
+  private restartAmbientLoop() {
+    if (this.loopInterval) {
+      clearInterval(this.loopInterval);
+      this.loopInterval = null;
+    }
+
+    if (this.currentMood === 'calm') {
+      const playCalm = () => {
+        if (!this.isPlaying) return;
+        const idx = Math.floor(Math.random() * (this.dorianNotes.length - 3));
+        this.playLyrePluck(this.dorianNotes[idx], 3.0);
+        setTimeout(() => { if (this.isPlaying) this.playLyrePluck(this.dorianNotes[idx + 2], 2.5); }, 350);
+        setTimeout(() => { if (this.isPlaying) this.playLyrePluck(this.dorianNotes[idx + 4] || 587.33, 3.5); }, 700);
+      };
+      playCalm();
+      this.loopInterval = window.setInterval(playCalm, 5000);
+    } else if (this.currentMood === 'battle') {
+      const playBattle = () => {
+        if (!this.isPlaying) return;
+        this.playWarDrum(0.45);
+        setTimeout(() => { if (this.isPlaying) this.playWarDrum(0.3); }, 280);
+        setTimeout(() => { if (this.isPlaying) this.playWarDrum(0.4); }, 560);
+        if (Math.random() > 0.5) {
+          setTimeout(() => { if (this.isPlaying) this.playWarHorn(130.81); }, 1200);
+        }
+      };
+      playBattle();
+      this.loopInterval = window.setInterval(playBattle, 4000);
+    } else if (this.currentMood === 'mystic') {
+      const playMystic = () => {
+        if (!this.isPlaying) return;
+        const idx = Math.floor(Math.random() * (this.mysticNotes.length - 2));
+        this.playLyrePluck(this.mysticNotes[idx], 4.0);
+        setTimeout(() => { if (this.isPlaying) this.playLyrePluck(this.mysticNotes[idx + 1], 4.0); }, 500);
+        setTimeout(() => { if (this.isPlaying) this.playLyrePluck(this.mysticNotes[idx + 2] || 880, 4.5); }, 1100);
+      };
+      playMystic();
+      this.loopInterval = window.setInterval(playMystic, 5500);
+    }
+  }
+
+  // Start background soundtrack
   public startSoundtrack() {
     if (this.isPlaying) return;
     this.initContext();
     this.isPlaying = true;
 
     this.startSeaAmbience();
-
-    // Periodic gentle lyre notes
-    const playRandomChord = () => {
-      if (!this.isPlaying) return;
-      const baseIdx = Math.floor(Math.random() * (this.lyreNotes.length - 3));
-      const note1 = this.lyreNotes[baseIdx];
-      const note2 = this.lyreNotes[baseIdx + 2];
-      const note3 = this.lyreNotes[baseIdx + 4] || this.lyreNotes[this.lyreNotes.length - 1];
-
-      this.playLyrePluck(note1, 3.0);
-      setTimeout(() => { if (this.isPlaying) this.playLyrePluck(note2, 2.5); }, 300);
-      setTimeout(() => { if (this.isPlaying) this.playLyrePluck(note3, 3.5); }, 650);
-    };
-
-    playRandomChord();
-    this.melodyInterval = window.setInterval(playRandomChord, 5000);
+    this.restartAmbientLoop();
   }
 
   public stopSoundtrack() {
     this.isPlaying = false;
-    if (this.melodyInterval) {
-      clearInterval(this.melodyInterval);
-      this.melodyInterval = null;
+    if (this.loopInterval) {
+      clearInterval(this.loopInterval);
+      this.loopInterval = null;
     }
     if (this.ctx) {
       this.ctx.close();
       this.ctx = null;
       this.masterGain = null;
+      this.seaNoiseNode = null;
     }
   }
 

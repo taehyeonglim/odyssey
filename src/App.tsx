@@ -3,19 +3,25 @@ import { Navbar, TabType } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { SoundPlayer } from './components/common/SoundPlayer';
 import { ImageModal } from './components/common/ImageModal';
+import { QuoteCardModal } from './components/common/QuoteCardModal';
 import { IliadHero } from './components/iliad/IliadHero';
 import { IliadTimeline } from './components/iliad/IliadTimeline';
 import { TrojanWarSides } from './components/iliad/TrojanWarSides';
+import { AchillesShield } from './components/iliad/AchillesShield';
+import { BattlefieldMap } from './components/iliad/BattlefieldMap';
 import { OdysseyHero } from './components/odyssey/OdysseyHero';
 import { InteractiveMap } from './components/odyssey/InteractiveMap';
 import { CharacterCodex } from './components/codex/CharacterCodex';
 import { HeroTrial } from './components/adventure/HeroTrial';
-import { Swords, Compass, Users, Award, Sparkles, ChevronRight } from 'lucide-react';
+import { HomerTrivia } from './components/adventure/HomerTrivia';
+import { Swords, Compass, Users, Award, Sparkles, ChevronRight, BookOpen, Shield } from 'lucide-react';
 import { audioEngine } from './utils/soundSynth';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
+  const [adventureMode, setAdventureMode] = useState<'trial' | 'trivia'>('trial');
   const [modalImage, setModalImage] = useState<{ src: string; title: string; caption?: string } | null>(null);
+  const [quoteCard, setQuoteCard] = useState<{ korean: string; greek?: string; speaker: string; source: string } | null>(null);
 
   const handleOpenImageModal = (src: string, title: string, caption?: string) => {
     setModalImage({ src, title, caption });
@@ -117,12 +123,12 @@ export const App: React.FC = () => {
                       트로이아 전쟁 10년차 50일간의 기록
                     </p>
                     <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
-                      아킬레우스의 신성한 분노, 친구 파트로클로스의 전사, 조국을 지키려는 헥토르의 비극적 결투와 시신을 되찾으려는 노왕 프리아모스의 눈물.
+                      아킬레우스의 신성한 분노, 아킬레우스의 신성한 방패, 트로이아 전선 공방과 헥토르와의 비극적 결투.
                     </p>
                   </div>
 
                   <div className="flex items-center justify-between text-xs font-serif text-rose-400 font-bold pt-4 border-t border-slate-800">
-                    <span>24권 전체 타임라인 & 진영 대치도 보기</span>
+                    <span>24권 타임라인 & 아킬레우스 방패 보기</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
                   </div>
                 </div>
@@ -167,17 +173,36 @@ export const App: React.FC = () => {
             </div>
 
             {/* Quick Interactive Features Promo */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div 
-                onClick={() => handleNavigateTab('adventure')}
+                onClick={() => {
+                  setAdventureMode('trial');
+                  handleNavigateTab('adventure');
+                }}
                 className="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/20 hover:border-amber-500/50 cursor-pointer transition flex items-center space-x-4"
               >
                 <div className="p-3 rounded-xl bg-amber-900/40 text-amber-300 shrink-0">
                   <Award className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-serif text-base font-bold text-amber-200">영웅의 선택 시뮬레이터</h4>
-                  <p className="text-xs text-slate-400 font-sans">키클롭스, 세이렌, 스킬라의 위기에서 당신의 결단을 내려보세요.</p>
+                  <h4 className="font-serif text-base font-bold text-amber-200">영웅의 선택</h4>
+                  <p className="text-xs text-slate-400 font-sans">키클롭스, 세이렌의 위기에서 당신의 결단을 내려보세요.</p>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => {
+                  setAdventureMode('trivia');
+                  handleNavigateTab('adventure');
+                }}
+                className="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/20 hover:border-amber-500/50 cursor-pointer transition flex items-center space-x-4"
+              >
+                <div className="p-3 rounded-xl bg-amber-900/40 text-amber-300 shrink-0">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-serif text-base font-bold text-amber-200">호메로스 학당 퀴즈</h4>
+                  <p className="text-xs text-slate-400 font-sans">10단계 서사시 지식 챌린지에 도전하고 칭호를 획득하세요.</p>
                 </div>
               </div>
 
@@ -190,7 +215,7 @@ export const App: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-serif text-base font-bold text-amber-200">호메로스 인물 도감</h4>
-                  <p className="text-xs text-slate-400 font-sans">아킬레우스, 오디세우스, 아테나, 헥토르 등의 능력치와 일러스트.</p>
+                  <p className="text-xs text-slate-400 font-sans">영웅들과 올림포스 신들의 능력치와 초상화.</p>
                 </div>
               </div>
             </div>
@@ -208,8 +233,16 @@ export const App: React.FC = () => {
               onOpenImageModal={handleOpenImageModal}
             />
 
+            {/* Tactical Battlefield Map */}
+            <BattlefieldMap />
+
+            {/* Shield of Achilles Concentric Interactive Viewer */}
+            <AchillesShield />
+
+            {/* Faction Comparison */}
             <TrojanWarSides />
 
+            {/* 24-Book Interactive Timeline */}
             <div id="iliad-timeline-section">
               <IliadTimeline onOpenImageModal={handleOpenImageModal} />
             </div>
@@ -240,10 +273,48 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* ===================== TAB: ADVENTURE ===================== */}
+        {/* ===================== TAB: ADVENTURE & ACADEMY ===================== */}
         {activeTab === 'adventure' && (
-          <div className="animate-fadeIn">
-            <HeroTrial onOpenImageModal={handleOpenImageModal} />
+          <div className="space-y-8 animate-fadeIn">
+            {/* Mode Switcher */}
+            <div className="flex justify-center">
+              <div className="inline-flex p-1.5 rounded-2xl bg-[#15110d] border border-amber-500/30">
+                <button
+                  onClick={() => {
+                    audioEngine.playChime();
+                    setAdventureMode('trial');
+                  }}
+                  className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold transition flex items-center space-x-2 ${
+                    adventureMode === 'trial'
+                      ? 'bg-amber-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Award className="w-4 h-4" />
+                  <span>영웅의 선택 시뮬레이터</span>
+                </button>
+                <button
+                  onClick={() => {
+                    audioEngine.playChime();
+                    setAdventureMode('trivia');
+                  }}
+                  className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold transition flex items-center space-x-2 ${
+                    adventureMode === 'trivia'
+                      ? 'bg-amber-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>호메로스 학당 퀴즈</span>
+                </button>
+              </div>
+            </div>
+
+            {adventureMode === 'trial' ? (
+              <HeroTrial onOpenImageModal={handleOpenImageModal} />
+            ) : (
+              <HomerTrivia />
+            )}
           </div>
         )}
       </main>
@@ -258,6 +329,13 @@ export const App: React.FC = () => {
         imageSrc={modalImage?.src || ''}
         title={modalImage?.title || ''}
         caption={modalImage?.caption}
+      />
+
+      {/* Quote Card Generator Modal */}
+      <QuoteCardModal
+        isOpen={!!quoteCard}
+        onClose={() => setQuoteCard(null)}
+        quote={quoteCard}
       />
 
       {/* Footer */}
