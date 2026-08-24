@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CHARACTERS_DATA, EpicCharacter } from '../../data/charactersData';
-import { Swords, Shield, Trophy, RotateCcw, Sparkles, Flame, Heart, Zap } from 'lucide-react';
+import { Swords, Trophy, RotateCcw, Flame, History, Zap, Shield } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { audioEngine } from '../../utils/soundSynth';
 
@@ -14,6 +14,13 @@ interface CombatLog {
   godIntervened: boolean;
 }
 
+interface DuelHistory {
+  winner: string;
+  loser: string;
+  date: string;
+  rounds: number;
+}
+
 export const DuelArena: React.FC = () => {
   const fighters = CHARACTERS_DATA.filter(c => c.side === 'greek' || c.side === 'trojan');
 
@@ -24,9 +31,20 @@ export const DuelArena: React.FC = () => {
   const [hpA, setHpA] = useState<number>(100);
   const [hpB, setHpB] = useState<number>(100);
   const [winner, setWinner] = useState<EpicCharacter | null>(null);
+  const [history, setHistory] = useState<DuelHistory[]>([]);
 
   const heroA = CHARACTERS_DATA.find(c => c.id === heroAId) || CHARACTERS_DATA[0];
   const heroB = CHARACTERS_DATA.find(c => c.id === heroBId) || CHARACTERS_DATA[3];
+
+  const getSpecialSkill = (id: string) => {
+    switch (id) {
+      case 'achilles': return '⚡ 펠리온의 신성한 창';
+      case 'hector': return '🛡️ 트로이 성채의 결사항전';
+      case 'odysseus': return '🦉 아테나의 번개 지략';
+      case 'agamemnon': return '👑 미케네 군왕의 권위';
+      default: return '⚔️ 영웅의 일격';
+    }
+  };
 
   const handleStartDuel = () => {
     if (heroA.id === heroB.id) {
@@ -45,19 +63,16 @@ export const DuelArena: React.FC = () => {
     let currentHpB = 100;
     const logs: CombatLog[] = [];
 
-    // Run 3-5 rounds of simulated combat
     let round = 1;
     const combatInterval = setInterval(() => {
-      // Determine attacker (alternate or higher favor/bravery)
       const aAttacks = round % 2 === 1;
       const attacker = aAttacks ? heroA : heroB;
       const defender = aAttacks ? heroB : heroA;
 
-      // Damage formula based on stats
-      const baseDmg = Math.floor(attacker.stats.bravery * 0.25 + Math.random() * 15);
+      const baseDmg = Math.floor(attacker.stats.bravery * 0.28 + Math.random() * 14);
       const godChance = Math.random() < (attacker.stats.divineFavor / 200);
-      const isCrit = Math.random() < 0.3;
-      const finalDmg = Math.floor(baseDmg * (isCrit ? 1.5 : 1.0) * (godChance ? 1.3 : 1.0));
+      const isCrit = Math.random() < 0.35;
+      const finalDmg = Math.floor(baseDmg * (isCrit ? 1.4 : 1.0) * (godChance ? 1.3 : 1.0));
 
       if (aAttacks) {
         currentHpB = Math.max(0, currentHpB - finalDmg);
@@ -67,14 +82,13 @@ export const DuelArena: React.FC = () => {
         setHpA(currentHpA);
       }
 
-      // Generate Homeric action flavor text
       let flavor = "";
       if (godChance) {
-        flavor = `올림포스 신의 빛이 ${attacker.nameKo}의 무기를 감싸며 ${defender.nameKo}의 방패를 쪼개었습니다!`;
+        flavor = `올림포스 신들의 축복이 ${attacker.nameKo}를 감싸며 [${getSpecialSkill(attacker.id)}]이(가) 작렬했습니다!`;
       } else if (isCrit) {
-        flavor = `${attacker.nameKo}가 사자처럼 포효하며 던진 물푸레나무 창이 ${defender.nameKo}의 투구 깃을 날려버렸습니다!`;
+        flavor = `${attacker.nameKo}의 분노가 담긴 치명적 일격이 ${defender.nameKo}의 투구와 갑옷을 흔들었습니다!`;
       } else {
-        flavor = `${attacker.nameKo}의 날카로운 청동검이 ${defender.nameKo}의 갑옷을 스치며 불꽃을 튀겼습니다.`;
+        flavor = `${attacker.nameKo}의 청동 창이 ${defender.nameKo}의 방패를 내리찍었습니다.`;
       }
 
       logs.push({
@@ -87,19 +101,24 @@ export const DuelArena: React.FC = () => {
         godIntervened: godChance
       });
       setCombatLogs([...logs]);
-      audioEngine.playWarDrum(0.35);
+      audioEngine.playWarDrum(0.4);
 
       if (currentHpA <= 0 || currentHpB <= 0 || round >= 6) {
         clearInterval(combatInterval);
         setIsFighting(false);
         const vict = currentHpA >= currentHpB ? heroA : heroB;
+        const los = vict.id === heroA.id ? heroB : heroA;
         setWinner(vict);
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        setHistory(prev => [
+          { winner: vict.nameKo, loser: los.nameKo, date: new Date().toLocaleTimeString(), rounds: round },
+          ...prev.slice(0, 4)
+        ]);
+        confetti({ particleCount: 110, spread: 75, origin: { y: 0.6 } });
         audioEngine.playChime();
       }
 
       round++;
-    }, 1200);
+    }, 1100);
   };
 
   const handleReset = () => {
@@ -122,7 +141,7 @@ export const DuelArena: React.FC = () => {
           트로이 평원의 영웅 결투 시뮬레이터
         </h3>
         <p className="text-xs sm:text-sm text-slate-300 font-sans">
-          영웅들의 4대 능력치를 바탕으로 펼쳐지는 가상 백병전 시뮬레이션
+          영웅들의 4대 능력치와 고유 스킬을 바탕으로 펼쳐지는 가상 백병전 시뮬레이션
         </p>
       </div>
 
@@ -157,6 +176,9 @@ export const DuelArena: React.FC = () => {
             )}
             <h4 className="font-serif text-xl font-black text-amber-200">{heroA.nameKo}</h4>
             <p className="text-[11px] font-serif text-amber-400/80 italic">"{heroA.epithet}"</p>
+            <div className="text-[11px] font-serif text-amber-300 bg-amber-950/40 py-1 px-2 rounded-md inline-block">
+              {getSpecialSkill(heroA.id)}
+            </div>
 
             {/* HP Bar */}
             <div className="pt-2">
@@ -205,6 +227,9 @@ export const DuelArena: React.FC = () => {
             )}
             <h4 className="font-serif text-xl font-black text-rose-200">{heroB.nameKo}</h4>
             <p className="text-[11px] font-serif text-rose-400/80 italic">"{heroB.epithet}"</p>
+            <div className="text-[11px] font-serif text-rose-300 bg-rose-950/40 py-1 px-2 rounded-md inline-block">
+              {getSpecialSkill(heroB.id)}
+            </div>
 
             {/* HP Bar */}
             <div className="pt-2">
@@ -270,6 +295,23 @@ export const DuelArena: React.FC = () => {
             <RotateCcw className="w-4 h-4" />
             <span>새로운 매치업 도전</span>
           </button>
+        </div>
+      )}
+
+      {/* Match History */}
+      {history.length > 0 && (
+        <div className="bg-[#15110d] border border-slate-800 rounded-2xl p-4 space-y-2">
+          <h5 className="text-xs font-serif font-bold text-slate-400 flex items-center gap-1.5">
+            <History className="w-3.5 h-3.5 text-amber-400" /> 최근 결투 전적
+          </h5>
+          <div className="space-y-1 text-xs font-serif text-slate-300">
+            {history.map((h, i) => (
+              <div key={i} className="flex justify-between bg-[#0c0a08] p-2 rounded-lg border border-slate-800/60">
+                <span>🏆 <strong>{h.winner}</strong> 승리 vs {h.loser} ({h.rounds}라운드)</span>
+                <span className="text-[11px] text-slate-500">{h.date}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -3,16 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>호메로스 대서사시: 일리아드 & 오디세이아 | Homer's Epics</title>
-    <meta name="description" content="호메로스의 양대 서사시 《일리아드》와 《오디세이아》의 웅장한 세계를 탐험하는 인터랙티브 웹 애플리케이션" />
-    
-    <!-- Google Fonts: Cinzel (Classic Greek / Roman feel) & Noto Serif KR -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Serif+KR:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#0c0a08" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- SEO Primary Meta Tags -->
+    <title>호메로스 서사시: 《일리아드》 & 《오디세이아》 인터랙티브 아카이브</title>
+    <meta name="title" content="호메로스 서사시: 《일리아드》 & 《오디세이아》 인터랙티브 아카이브" />
+    <meta name="description" content="호메로스의 《일리아드》와 《오디세이아》를 탐험하는 인터랙티브 웹 아카이브. 24권 타임라인, 지중해 14개 기착지 항해 지도, 아킬레우스의 방패 인포그래픽, 영웅 가계도, 고대 그리스어 개념 사전 및 영웅 결투 시뮬레이터 수록." />
+    <meta name="keywords" content="호메로스, 일리아드, 오디세이아, 아킬레우스, 헥토르, 오디세우스, 트로이 전쟁, 그리스 신화, 고전문학, 인터랙티브 아카이브" />
+    <meta name="author" content="taehyeonglim" />
+
+    <!-- Open Graph / Facebook / Kakao -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://taehyeonglim.github.io/odyssey/" />
+    <meta property="og:title" content="호메로스 서사시: 《일리아드》 & 《오디세이아》 인터랙티브 아카이브" />
+    <meta property="og:description" content="호메로스의 《일리아드》와 《오디세이아》를 탐험하는 인터랙티브 웹 아카이브. Gemini AI 생성 고전 명화 일러스트와 풍부한 인터랙션 제공." />
+    <meta property="og:image" content="https://taehyeonglim.github.io/odyssey/assets/images/hero_banner.jpg" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://taehyeonglim.github.io/odyssey/" />
+    <meta name="twitter:title" content="호메로스 서사시: 《일리아드》 & 《오디세이아》 인터랙티브 아카이브" />
+    <meta name="twitter:description" content="호메로스의 《일리아드》와 《오디세이아》를 탐험하는 인터랙티브 웹 아카이브." />
+    <meta name="twitter:image" content="https://taehyeonglim.github.io/odyssey/assets/images/hero_banner.jpg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Serif+KR:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-parchment-950 text-slate-100 font-sans selection:bg-amber-600 selection:text-white antialiased min-h-screen overflow-x-hidden">
+  <body class="bg-[#0c0a08] text-slate-100 antialiased selection:bg-amber-600 selection:text-white min-h-screen">
     <div id="root"></div>
     <script type="module" src="./src/main.tsx"></script>
   </body>

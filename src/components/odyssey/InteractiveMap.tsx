@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ODYSSEY_STATIONS, OdysseyStation } from '../../data/odysseyData';
+import { ODYSSEY_STATIONS } from '../../data/odysseyData';
 import { StationDetailModal } from './StationDetailModal';
-import { Compass, Play, Pause, RotateCcw, MapPin, ChevronRight, ChevronLeft, Sparkles, Navigation, Info } from 'lucide-react';
+import { Compass, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Sparkles, Navigation, Info, Waves, Skull, ShieldAlert } from 'lucide-react';
 import { audioEngine } from '../../utils/soundSynth';
 
 interface InteractiveMapProps {
@@ -68,17 +68,21 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
     return `${acc} L ${station.mapPos.x} ${station.mapPos.y}`;
   }, '');
 
+  const progressPct = Math.round(((selectedStationIndex + 1) / ODYSSEY_STATIONS.length) * 100);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {/* Header and Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-aegean-500/20 pb-4">
         <div>
-          <h2 className="font-serif text-2xl sm:text-3xl font-black text-slate-100 flex items-center gap-2.5">
-            <Compass className="w-7 h-7 text-aegean-400 animate-spin-slow" />
-            <span>오디세우스의 10년 지중해 항해 지도</span>
-          </h2>
+          <div className="flex items-center space-x-2">
+            <h2 className="font-serif text-2xl sm:text-3xl font-black text-slate-100 flex items-center gap-2.5">
+              <Compass className="w-7 h-7 text-aegean-400 animate-spin-slow" />
+              <span>오디세우스의 10년 지중해 항해 지도</span>
+            </h2>
+          </div>
           <p className="text-xs sm:text-sm text-slate-400 font-sans mt-1">
-            트로이에서 이타카까지, 14개 스테이션을 클릭하거나 재생 버튼을 눌러 여정을 따라가 보세요.
+            트로이에서 이타카까지 14개 기착지를 클릭하거나 자동 재생을 눌러 10년간의 모험을 탐험하세요.
           </p>
         </div>
 
@@ -98,7 +102,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
 
           <button
             onClick={() => handleSelectStation(0)}
-            className="p-2 rounded-xl bg-parchment-900 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+            className="p-2 rounded-xl bg-[#15110d] border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition"
             title="처음(트로이)으로 리셋"
           >
             <RotateCcw className="w-4 h-4" />
@@ -106,11 +110,36 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
         </div>
       </div>
 
+      {/* Voyage Progress Metric Bar */}
+      <div className="bg-[#15110d] border border-aegean-500/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <span className="w-8 h-8 rounded-full bg-aegean-950 border border-aegean-400/50 flex items-center justify-center text-aegean-300 font-serif font-bold text-xs">
+            {selectedStationIndex + 1}
+          </span>
+          <div>
+            <div className="text-xs font-serif font-bold text-slate-200">
+              현재 기착지: <span className="text-amber-300">{currentStation.nameKo}</span>
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans">{currentStation.region}</div>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-6">
+          <div className="text-right">
+            <span className="text-[11px] font-serif text-slate-400 block">항해 진행률</span>
+            <span className="font-serif text-sm font-bold text-aegean-300">{progressPct}% ( {selectedStationIndex + 1} / 14 )</span>
+          </div>
+          <div className="w-28 sm:w-40 h-2 bg-black/60 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-aegean-500 to-amber-400 transition-all duration-300" style={{ width: `${progressPct}%` }} />
+          </div>
+        </div>
+      </div>
+
       {/* SVG Interactive Map Container */}
       <div className="relative rounded-3xl bg-gradient-to-b from-[#091522] via-[#0d1e30] to-[#07111c] border border-aegean-500/30 overflow-hidden shadow-2xl p-2 sm:p-4">
-        {/* Subtle Map Background Grid and Compass Decor */}
+        {/* Subtle Map Compass Decor */}
         <div className="absolute top-4 right-4 text-aegean-500/20 pointer-events-none hidden sm:block">
-          <svg className="w-32 h-32" viewBox="0 0 100 100">
+          <svg className="w-28 h-28" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2,2" />
             <path d="M50 5 L55 45 L95 50 L55 55 L50 95 L45 55 L5 50 L45 45 Z" fill="currentColor" opacity="0.3"/>
             <text x="50" y="15" textAnchor="middle" fill="currentColor" fontSize="8" fontFamily="serif" fontWeight="bold">N</text>
@@ -124,10 +153,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
         <div className="w-full aspect-[16/10] sm:aspect-[16/9] min-h-[360px] max-h-[560px]">
           <svg viewBox="0 0 1000 600" className="w-full h-full select-none">
             <defs>
-              <linearGradient id="oceanGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0a192f" />
-                <stop offset="100%" stopColor="#071220" />
-              </linearGradient>
               <linearGradient id="routeGrad" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#d97706" />
                 <stop offset="50%" stopColor="#38bdf8" />
@@ -150,7 +175,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
               {/* Corsica & Sardinia */}
               <path d="M 300 140 Q 320 150 310 210 Q 290 200 300 140 Z" />
               <path d="M 290 220 Q 320 230 310 300 Q 280 290 290 220 Z" />
-              {/* Asia Minor / Anatolia Coast */}
+              {/* Asia Minor Coast */}
               <path d="M 720 80 Q 820 100 850 200 Q 800 280 750 300 Q 730 240 710 180 Z" />
               {/* North Africa Coastline */}
               <path d="M 150 520 Q 350 480 500 510 Q 700 500 880 530 L 880 590 L 150 590 Z" />
@@ -160,6 +185,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
             <text x="730" y="240" fill="#38bdf8" opacity="0.15" fontSize="18" fontFamily="serif" letterSpacing="4">AEGEAN SEA</text>
             <text x="360" y="240" fill="#38bdf8" opacity="0.15" fontSize="18" fontFamily="serif" letterSpacing="4">TYRRHENIAN SEA</text>
             <text x="520" y="420" fill="#38bdf8" opacity="0.15" fontSize="18" fontFamily="serif" letterSpacing="4">IONIAN SEA</text>
+
+            {/* Danger Zones Labels on Sea */}
+            <g opacity="0.7">
+              {/* Scylla & Charybdis Straits */}
+              <circle cx="470" cy="320" r="14" fill="none" stroke="#f43f5e" strokeWidth="1" strokeDasharray="2,2" />
+              <text x="470" y="342" textAnchor="middle" fill="#fda4af" fontSize="8" fontFamily="sans-serif">스킬라 해협</text>
+
+              {/* Sirens Reef */}
+              <circle cx="440" cy="280" r="14" fill="none" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" />
+              <text x="440" y="268" textAnchor="middle" fill="#d8b4fe" fontSize="8" fontFamily="sans-serif">세이렌 암초</text>
+            </g>
 
             {/* Full Voyage Ghost Path */}
             <path
@@ -198,7 +234,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
                     <circle
                       cx={station.mapPos.x}
                       cy={station.mapPos.y}
-                      r="16"
+                      r="18"
                       fill="none"
                       stroke="#f59e0b"
                       strokeWidth="2"
@@ -262,11 +298,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
           </svg>
         </div>
 
-        {/* Legend / Guide Bar */}
+        {/* Legend Bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-black/50 backdrop-blur rounded-2xl mt-2 text-xs font-serif text-slate-300 border border-aegean-500/20">
           <div className="flex items-center space-x-3">
             <span className="flex items-center gap-1 text-amber-300 font-bold">
-              <Navigation className="w-3.5 h-3.5" /> 현재 기착지: {currentStation.nameKo}
+              <Navigation className="w-3.5 h-3.5" /> 위치: {currentStation.nameKo}
             </span>
             <span className="hidden sm:inline text-slate-500">|</span>
             <span className="hidden sm:inline text-slate-400">{currentStation.region}</span>
@@ -287,7 +323,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
       </div>
 
       {/* Active Station Spotlight Card */}
-      <div className="bg-parchment-900 border border-aegean-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden transition-all duration-300">
+      <div className="bg-[#15110d] border border-aegean-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden transition-all duration-300">
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Thumbnail / Image Preview */}
           {currentStation.image && (
@@ -321,7 +357,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
                   {currentStation.nameKo}
                 </h3>
               </div>
-              <span className="text-xs font-serif text-slate-400 px-2.5 py-1 rounded bg-parchment-950 border border-slate-800">
+              <span className="text-xs font-serif text-slate-400 px-2.5 py-1 rounded bg-[#0c0a08] border border-slate-800">
                 {currentStation.region}
               </span>
             </div>
@@ -349,7 +385,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
                   onClick={handlePrevStation}
                   disabled={selectedStationIndex === 0}
                   className={`p-2 rounded-lg border text-xs transition ${
-                    selectedStationIndex === 0 ? 'border-slate-800 text-slate-600 cursor-not-allowed' : 'border-slate-700 text-slate-300 hover:bg-parchment-800'
+                    selectedStationIndex === 0 ? 'border-slate-800 text-slate-600 cursor-not-allowed' : 'border-slate-700 text-slate-300 hover:bg-slate-800'
                   }`}
                   aria-label="이전 스테이션"
                 >
@@ -362,7 +398,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ onOpenImageModal
                   onClick={handleNextStation}
                   disabled={selectedStationIndex === ODYSSEY_STATIONS.length - 1}
                   className={`p-2 rounded-lg border text-xs transition ${
-                    selectedStationIndex === ODYSSEY_STATIONS.length - 1 ? 'border-slate-800 text-slate-600 cursor-not-allowed' : 'border-slate-700 text-slate-300 hover:bg-parchment-800'
+                    selectedStationIndex === ODYSSEY_STATIONS.length - 1 ? 'border-slate-800 text-slate-600 cursor-not-allowed' : 'border-slate-700 text-slate-300 hover:bg-slate-800'
                   }`}
                   aria-label="다음 스테이션"
                 >

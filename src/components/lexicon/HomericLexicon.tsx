@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HOMERIC_LEXICON, HomericConcept } from '../../data/lexiconData';
-import { BookOpen, Search, Volume2, Sparkles, Filter, RotateCw, Quote } from 'lucide-react';
+import { BookOpen, Search, Volume2, Filter, RotateCw, Star, BookmarkCheck } from 'lucide-react';
 import { audioEngine } from '../../utils/soundSynth';
 import { speechSynth } from '../../utils/speechSynth';
 
@@ -11,6 +11,29 @@ export const HomericLexicon: React.FC = () => {
   const [flashcardIndex, setFlashcardIndex] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('homeric_lexicon_bookmarks');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('homeric_lexicon_bookmarks', JSON.stringify(bookmarkedIds));
+    } catch {}
+  }, [bookmarkedIds]);
+
+  const toggleBookmark = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    audioEngine.playChime();
+    setBookmarkedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   const filteredConcepts = HOMERIC_LEXICON.filter((item) => {
     const matchSearch = item.korean.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -18,7 +41,8 @@ export const HomericLexicon: React.FC = () => {
                         item.transliteration.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         item.shortDef.toLowerCase().includes(searchTerm.toLowerCase());
     const matchCat = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchSearch && matchCat;
+    const matchBookmark = !showBookmarksOnly || bookmarkedIds.includes(item.id);
+    return matchSearch && matchCat && matchBookmark;
   });
 
   const handleSpeak = (concept: HomericConcept) => {
@@ -61,22 +85,39 @@ export const HomericLexicon: React.FC = () => {
             </p>
           </div>
 
-          {/* Flashcard Toggle */}
-          <button
-            onClick={() => {
-              audioEngine.playChime();
-              setIsFlashcardMode(!isFlashcardMode);
-              setIsFlipped(false);
-            }}
-            className={`px-4 py-2 rounded-xl text-xs font-serif font-bold border transition flex items-center space-x-2 shrink-0 ${
-              isFlashcardMode
-                ? 'bg-amber-600 border-amber-400 text-white shadow-lg'
-                : 'bg-[#15110d] border-slate-700 text-slate-300 hover:text-white'
-            }`}
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-            <span>{isFlashcardMode ? "사전 목록 뷰로 전환" : "플래시카드 암기 모드"}</span>
-          </button>
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-2 shrink-0">
+            <button
+              onClick={() => {
+                audioEngine.playChime();
+                setShowBookmarksOnly(!showBookmarksOnly);
+              }}
+              className={`px-3 py-2 rounded-xl text-xs font-serif font-bold border transition flex items-center space-x-1.5 ${
+                showBookmarksOnly
+                  ? 'bg-amber-500 text-black border-amber-400 shadow'
+                  : 'bg-[#15110d] border-slate-700 text-slate-300 hover:text-white'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5" />
+              <span>북마크 ({bookmarkedIds.length})</span>
+            </button>
+
+            <button
+              onClick={() => {
+                audioEngine.playChime();
+                setIsFlashcardMode(!isFlashcardMode);
+                setIsFlipped(false);
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-serif font-bold border transition flex items-center space-x-2 ${
+                isFlashcardMode
+                  ? 'bg-amber-600 border-amber-400 text-white shadow-lg'
+                  : 'bg-[#15110d] border-slate-700 text-slate-300 hover:text-white'
+              }`}
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span>{isFlashcardMode ? "사전 목록 뷰" : "플래시카드 암기 모드"}</span>
+            </button>
+          </div>
         </div>
 
         {/* Search & Category Filter Bar */}
@@ -206,53 +247,67 @@ export const HomericLexicon: React.FC = () => {
       ) : (
         /* Mode 2: Dictionary Cards Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredConcepts.map((item) => (
-            <div
-              key={item.id}
-              className="bg-[#15110d] border border-amber-500/20 rounded-3xl p-6 shadow-xl hover:border-amber-500/40 transition duration-300 flex flex-col justify-between space-y-4 group"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  {getCategoryBadge(item.category)}
-                  <button
-                    onClick={() => handleSpeak(item)}
-                    className={`p-1.5 rounded-lg border transition ${
-                      speakingId === item.id ? 'bg-amber-600 text-white animate-pulse' : 'bg-[#0c0a08] border-slate-800 text-slate-400 hover:text-amber-300'
-                    }`}
-                    title="음성 낭독 듣기"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div>
-                  <div className="flex items-baseline space-x-2">
-                    <span className="font-serif text-2xl font-black text-amber-200">{item.greek}</span>
-                    <span className="text-xs font-mono text-amber-500/70">[{item.transliteration}]</span>
+          {filteredConcepts.map((item) => {
+            const isBookmarked = bookmarkedIds.includes(item.id);
+            return (
+              <div
+                key={item.id}
+                className="bg-[#15110d] border border-amber-500/20 rounded-3xl p-6 shadow-xl hover:border-amber-500/40 transition duration-300 flex flex-col justify-between space-y-4 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    {getCategoryBadge(item.category)}
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        onClick={(e) => toggleBookmark(item.id, e)}
+                        className={`p-1.5 rounded-lg border transition ${
+                          isBookmarked ? 'bg-amber-500/20 border-amber-400 text-amber-300' : 'bg-[#0c0a08] border-slate-800 text-slate-400 hover:text-amber-300'
+                        }`}
+                        title={isBookmarked ? "북마크 해제" : "단어장 저장"}
+                      >
+                        <Star className={`w-4 h-4 ${isBookmarked ? 'fill-amber-400 text-amber-400' : ''}`} />
+                      </button>
+                      <button
+                        onClick={() => handleSpeak(item)}
+                        className={`p-1.5 rounded-lg border transition ${
+                          speakingId === item.id ? 'bg-amber-600 text-white animate-pulse' : 'bg-[#0c0a08] border-slate-800 text-slate-400 hover:text-amber-300'
+                        }`}
+                        title="음성 낭독 듣기"
+                      >
+                        <Volume2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-100">{item.korean}</h3>
+
+                  <div>
+                    <div className="flex items-baseline space-x-2">
+                      <span className="font-serif text-2xl font-black text-amber-200">{item.greek}</span>
+                      <span className="text-xs font-mono text-amber-500/70">[{item.transliteration}]</span>
+                    </div>
+                    <h3 className="font-serif text-lg font-bold text-slate-100">{item.korean}</h3>
+                  </div>
+
+                  <p className="text-xs font-serif text-amber-300/90 font-medium">
+                    {item.shortDef}
+                  </p>
+
+                  <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                    {item.fullExplanation}
+                  </p>
                 </div>
 
-                <p className="text-xs font-serif text-amber-300/90 font-medium">
-                  {item.shortDef}
-                </p>
-
-                <p className="text-xs text-slate-300 font-sans leading-relaxed">
-                  {item.fullExplanation}
-                </p>
+                {/* Citations */}
+                <div className="pt-3 border-t border-slate-800/80 space-y-1 bg-[#0c0a08] p-3 rounded-xl border border-slate-800">
+                  <p className="text-[11px] font-mono text-amber-400/70 italic">
+                    {item.greekCitation}
+                  </p>
+                  <p className="text-xs font-serif italic text-slate-200">
+                    "{item.koreanCitation}"
+                  </p>
+                </div>
               </div>
-
-              {/* Citations */}
-              <div className="pt-3 border-t border-slate-800/80 space-y-1 bg-[#0c0a08] p-3 rounded-xl border border-slate-800">
-                <p className="text-[11px] font-mono text-amber-400/70 italic">
-                  {item.greekCitation}
-                </p>
-                <p className="text-xs font-serif italic text-slate-200">
-                  "{item.koreanCitation}"
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
